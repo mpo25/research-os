@@ -207,7 +207,26 @@ ChatGPT is an independent cognitive layer — a deliberate external challenger, 
 
 ---
 
-## Git Commit Conventions
+## Git Workflow
+
+### Execution constraint
+
+Claude authors and edits files. All git operations run from your local terminal.
+
+Co-Work leaves stale `.git/*.lock` files on the mounted macOS filesystem after the first commit in a session, causing subsequent git commands to fail. Do not run git commands inside Co-Work.
+
+**Standard workflow:**
+1. Claude drafts or edits files
+2. Claude proposes a commit plan (files + messages)
+3. Human reviews `git status --short`
+4. Human stages, commits, and pushes from terminal
+
+**If a stale lock appears:**
+```bash
+rm -f .git/HEAD.lock .git/index.lock .git/objects/maintenance.lock
+```
+
+### Commit conventions
 
 ```
 type(scope): short description
