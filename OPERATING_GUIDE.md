@@ -2,7 +2,7 @@
 
 How to run the research-os system inside Claude Co-Work.
 
-**Last updated:** 2026-05-25  
+**Last updated:** 2026-05-25 (Phase 3)  
 **Architecture ref:** personal_ai_research_os_v3.pdf
 
 ---
@@ -17,33 +17,52 @@ Every session is intentional. You arrive with a purpose, work through it with th
 
 ## Starting a Session
 
-### Step 1 — Load context
+### Step 1 — Open with the session header
 
-At the start of any non-trivial session, paste or reference the relevant context:
+Paste this block at the start of every non-trivial session. It restores state and sets the operating frame.
 
-**Always load (minimum):**
-- This file (`OPERATING_GUIDE.md`) — or summarize the operating model verbally if already familiar
-- `AGENTS.md` — agent quick reference
+```
+--- SESSION START ---
+Date: YYYY-MM-DD
+Session: NNN
+Intent: [one sentence — what this session is for]
 
-**Load as needed:**
-- Relevant active research folder contents
-- Prior session summary (`logs/sessions/`)
-- Relevant ADRs or investment theses
-- Specific agent definitions if the session is specialist-heavy
+Context loaded:
+- Prior session: logs/sessions/YYYYMMDD-NNN-title.md [paste or summarize below]
+- Active research: [paste relevant files or summarize]
+- [any other specific docs]
 
-You do not need to load everything every time. Load what is relevant to today's work.
+Active agent: Atlas
+--- BEGIN ---
+```
 
-### Step 2 — State your intent
+Paste the prior session summary inline if it's short. Summarize it if it's long. The intent line is the most important part — it anchors the entire session.
 
-Open with a clear statement of what this session is for. Example:
+### Step 2 — Context loading by tier
 
-> "Starting a research session on [topic]. I want to [specific goal]. Active context: [what you've loaded]."
+Load only what is relevant. Start lean and pull in more as needed.
 
-This sets the operating frame. Atlas picks it up by default.
+**Tier 1 — Internalized (do not paste unless specifically relevant):**
+- OPERATING_GUIDE — you know the system after a few sessions
+- AGENTS.md — agent model is internalized
+- Governance principles — operating constraints are internalized
+
+**Tier 2 — Load per session based on intent:**
+- Prior session summary — always load if continuing prior work
+- Active research files — paste the specific files relevant to today's question
+- Relevant ADRs — only if architecture is being discussed
+- Active investment theses — only if thesis work is the focus
+
+**Tier 3 — Load on demand mid-session:**
+- Specific agent definitions — if a specialist needs precise scope
+- Completed research — if referencing a prior conclusion
+- Templates — when Archive is drafting a document
+
+**Rule:** Start with the prior session summary and your intent. Let the session reveal what else is needed.
 
 ### Step 3 — Name the active agent
 
-If you are not starting with Atlas, name the agent explicitly at the start:
+Atlas is default. If starting with a specialist, name it immediately:
 
 > `[Forge]: I want to assess the feasibility of...`
 
@@ -71,18 +90,19 @@ Default agent is **Atlas** when no agent is named. All transitions must be expli
 
 ### Sentinel review
 
-Mandatory before any high-stakes output leaves the session.
+Mandatory before any high-stakes output leaves the session. If you're asking whether Sentinel is needed, it probably is.
 
-High-stakes outputs include:
-- Investment thesis conclusions
-- Architecture decisions
-- Legal analysis outputs
-- Any document that informs a real-world action
+High-stakes outputs requiring mandatory review:
+- Investment thesis conclusions (any Beacon output reaching conclusion status)
+- Architecture decisions (before committing an ADR)
+- Legal analysis intended to inform a real-world action
+- Any document that directly informs a real-world decision
 
-Invoke with:
 ```
-[Sentinel: mandatory review]: [paste the output to be reviewed]
+[Sentinel: mandatory review]: [paste the specific output — not the whole session]
 ```
+
+After Sentinel, the sequence is fixed: critique → revision (by Atlas or Beacon) → human review → decision. Sentinel without revision is noise.
 
 ### Agent handoffs
 
@@ -106,30 +126,33 @@ Every meaningful session ends with a summary.
 [Archive]: Close this session and generate a summary.
 ```
 
-Archive produces a draft summary using the template in `templates/session-summary.md`.
+Archive produces a draft using `templates/session-summary.md` and lists memory promotion candidates with a recommendation for each.
 
 ### Step 2 — Review the summary
 
-Read it. Edit it. Make sure:
-- Decisions are numbered and clear
-- Next actions are specific and owned
-- Memory promotion candidates are flagged, not assumed
+Edit Archive's draft. Check specifically:
+- Decisions: numbered and unambiguous?
+- Next actions: specific enough to be actionable next session?
+- Promotion candidates: do you agree with Archive's recommendations?
+
+Do not commit Archive's draft verbatim. You make it accurate.
 
 ### Step 3 — Commit to GitHub
 
-Save the summary to `logs/sessions/YYYYMMDD-NNN-short-title.md` and commit:
-
 ```
-session(YYYYMMDD): session-NNN short title
+git add logs/sessions/YYYYMMDD-NNN-short-title.md
+git commit -m "session(YYYYMMDD): session-NNN short-title"
 ```
 
 ### Step 4 — Promote memory (if flagged)
 
-If Archive flagged memory promotion candidates:
-1. Review each candidate
-2. Approve or discard
-3. Draft the document (Archive can help)
-4. Commit to the appropriate folder
+For each promotion candidate:
+- Approve → Archive drafts the document → human commits
+- Discard → note why in the session summary's discard section
+
+### Step 5 — After Sentinel: ChatGPT check (optional, high-stakes only)
+
+For outputs that went through mandatory Sentinel review and will inform a real-world action, consider an external ChatGPT challenge before closing. See ChatGPT protocol below.
 
 ---
 
@@ -168,9 +191,19 @@ ChatGPT is an independent cognitive layer — a deliberate external challenger, 
 - Operational coordination
 
 **Protocol:**
-1. Complete the work in Claude Co-Work
-2. After Sentinel review, paste the relevant output into ChatGPT with a challenge prompt: "What is wrong with this analysis? What am I missing? What assumptions are most dangerous?"
-3. Bring the response back into Co-Work for Atlas or Sentinel to synthesize
+1. Complete the work in Co-Work, including Sentinel review and revision
+2. Extract only the output — strip agent names and internal session structure
+3. Open ChatGPT with a challenge frame, not a request for validation:
+   - "What is wrong with this analysis? Be specific about the weakest assumptions."
+   - "Give me an alternative framing that would lead to the opposite conclusion."
+   - "What is this analysis failing to consider?"
+4. Bring the response back into Co-Work:
+   ```
+   [Atlas]: ChatGPT offered this critique: [paste]. Integrate what's useful, flag what to discard.
+   ```
+5. Human decides what to incorporate
+
+**What ChatGPT is not:** a second vote. Agreement from ChatGPT does not strengthen the thesis — it may just mean you prompted toward confirmation. The value is disagreement and alternative framing.
 
 ---
 
